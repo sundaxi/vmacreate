@@ -69,6 +69,7 @@ Here are two methods below:
                 else:
                     print("\033[31mWrong Input\033[0m")
                     continue
+
                 break
         except Exception as e:
             print("Error Input",e)
@@ -190,14 +191,13 @@ class GetParmeters(object):
             __disktype = "umanaged"
             vm_vhd = az_show_vm_json[_storageProfile][_osDisk][_vhd][_uri]
             if self.vm_availability_set is not None:
-                az_cmd_generated = "az vm create --name %s --resource-group %s --location %s --nics %s --size %s --os-type %s --use-unmanaged-disk --attach-os-disk %s" % (
-                    self.vm_name, self.vm_resourcegroup, self.vm_location, self.vm_nics, self.vm_size,
-                    self.vm_os_type, vm_vhd)
-            else:
                 az_cmd_generated = "az vm create --name %s --resource-group %s --location %s --nics %s --size %s --os-type %s --use-unmanaged-disk --attach-os-disk %s --availability-set %s" % (
                     self.vm_name, self.vm_resourcegroup, self.vm_location, self.vm_nics, self.vm_size,
                     self.vm_os_type, vm_vhd, self.vm_availability_set)
-
+            else:
+                az_cmd_generated = "az vm create --name %s --resource-group %s --location %s --nics %s --size %s --os-type %s --use-unmanaged-disk --attach-os-disk %s" % (
+                    self.vm_name, self.vm_resourcegroup, self.vm_location, self.vm_nics, self.vm_size,
+                    self.vm_os_type, vm_vhd)
         return az_cmd_generated
 
 if __name__ == '__main__':
@@ -214,7 +214,6 @@ if __name__ == '__main__':
         # cmd_az_show_vm, cmd_az_list_ip_addresses = SelectVm().SelectTable(cmd_output)
         print("\033[32mRunning... It will take several secs...\033[0m")
         az_show_vm = az_obj.AzVmShow(cmd_az_show_vm)
-
         if len(az_show_vm) == 0:
             print("\033[31mError...No such vm in this subscription!\033[0m")
             sys.exit(2)
