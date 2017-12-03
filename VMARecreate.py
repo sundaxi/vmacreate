@@ -197,7 +197,7 @@ class GetParmeters(object):
                 az_cmd_generated = "az vm create --name %s --resource-group %s --location %s --nics %s --size %s --os-type %s --use-unmanaged-disk --attach-os-disk %s --availability-set %s" % (
                     self.vm_name, self.vm_resourcegroup, self.vm_location, self.vm_nics, self.vm_size,
                     self.vm_os_type, vm_vhd, self.vm_availability_set)
-        print("\033[32mRunning... It will take several secs...\033[0m")
+
         return az_cmd_generated
 
 if __name__ == '__main__':
@@ -212,6 +212,7 @@ if __name__ == '__main__':
         cmd_az_show_vm, cmd_az_list_ip_addresses = Table()
 
         # cmd_az_show_vm, cmd_az_list_ip_addresses = SelectVm().SelectTable(cmd_output)
+        print("\033[32mRunning... It will take several secs...\033[0m")
         az_show_vm = az_obj.AzVmShow(cmd_az_show_vm)
 
         if len(az_show_vm) == 0:
