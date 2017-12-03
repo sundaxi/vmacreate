@@ -148,11 +148,11 @@ class Tools(object):
         output_final = """
 Thanks for your patience 
 \033[33m1. You can use this command to delete your virtual machine and keep your osDisk 
-\033[31m%s 
+\033[34m%s 
 \033[33m2. You can use this command to allocate your current Public IP address as static 
-\033[31m%s 
+\033[34m%s 
 \033[33m3. You can use this command to re-create your vm after your change 
-\033[31m%s\033[0m      
+\033[34m%s\033[0m      
 """ % (delete_vm_cmd, az_cmd_generated,allocate_static_public_ip)
         print(output_final)
 
@@ -173,7 +173,7 @@ class GetParmeters(object):
 
     def GetParmeters(self):
         if az_show_vm_json[_storageProfile][_osDisk].get(_managedDisk) is not None:
-            print("\033[31mthis is managed disk\033[0m")
+            print("\033[33mthis is managed disk\033[0m")
             __disktype = "managed"
             vm_os_disk = az_show_vm_json[_storageProfile][_osDisk][_name]
             if self.vm_availability_set is not None:
@@ -186,7 +186,7 @@ class GetParmeters(object):
                     self.vm_os_type, vm_os_disk)
 
         else:
-            print("\033[32mthis is umanaged disk\033[0m")
+            print("\033[33mthis is umanaged disk\033[0m")
             __disktype = "umanaged"
             vm_vhd = az_show_vm_json[_storageProfile][_osDisk][_vhd][_uri]
             if self.vm_availability_set is not None:
@@ -220,9 +220,9 @@ if __name__ == '__main__':
         az_list_ip_addresses_list = az_obj.AzVmShow(cmd_az_list_ip_addresses)
 
         # deserialization az show -n vmaname -g rgname
-        az_show_vm_json = json.loads(az_show_vm)
+        az_show_vm_json = json.loads(az_show_vm.decode())
         # deserialization az vm list-ip-addresses -g rgname -n vmname
-        az_list_ip_addresses_list_json = json.loads(az_list_ip_addresses_list)
+        az_list_ip_addresses_list_json = json.loads(az_list_ip_addresses_list.decode())
         vm_paramters = GetParmeters(az_show_vm_json,Tool)
         az_cmd_generated = vm_paramters.GetParmeters()
         allocate_static_public_ip = Tool.GetPublicIp(az_list_ip_addresses_list_json,vm_paramters.vm_resourcegroup)
