@@ -90,7 +90,7 @@ Here are two methods below:
                 print("%4s: %-30s %-30s" % (count, i.split()[0], i.split()[1]))
             num = input('Please input your vm: ')
             try:
-                if int(num) < count:
+                if int(num) <= count:
                     Flag = True
                     count_inner = -1
                     for j in self.cmd_output[1].split('\n'):
