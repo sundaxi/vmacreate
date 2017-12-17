@@ -9,6 +9,12 @@ import json
 import subprocess
 import sys
 import os
+import datetime
+import time
+
+
+# az storage container create -n newvhd --account-name yingresourcegroupasia
+# az storage blob copy start -u https://yingresourcegroupasia.blob.core.windows.net/vhds/yingrhel6820170810094319.vhd -b new.vhd -c newvhd --account-name yingresourcegroupasia
 
 ## variables defination
 _availabilitySet = "availabilitySet"
@@ -30,6 +36,8 @@ _uri = "uri"
 _virtualMachine = "virtualMachine"
 _network = "network"
 _publicIpAddresses = "publicIpAddresses"
+
+datename = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
 ## Define command line
 az_vm_list = "az vm list -o table"
@@ -145,16 +153,18 @@ class Tools(object):
             vm_resourcegroup, vm_publicIp)
             return cmd
 
-    def Print(self,delete_vm_cmd, az_cmd_generated,allocate_static_public_ip):
+    def Print(self,*args):
         output_final = """
 Thanks for your patience 
 \033[33m1. You can use this command to delete your virtual machine and keep your osDisk 
 \033[34m%s 
 \033[33m2. You can use this command to allocate your current Public IP address as static 
 \033[34m%s 
-\033[33m3. You can use this command to re-create your vm after your change 
+\033[33m3. You can use this command to backup your os disk 
+\033[34m%s
+\033[33m4. You can use this command to re-create your vm after your change 
 \033[34m%s\033[0m      
-""" % (delete_vm_cmd, az_cmd_generated,allocate_static_public_ip)
+""" % (args[0],args[1],args[2],args[3])
         print(output_final)
 
 class GetParmeters(object):
@@ -177,6 +187,8 @@ class GetParmeters(object):
             print("\033[33mthis is managed disk\033[0m")
             __disktype = "managed"
             vm_os_disk = az_show_vm_json[_storageProfile][_osDisk][_name]
+            az_snapshot_create = "az snapshot create -g %s --source %s --name %s" % (self.vm_resourcegroup,vm_os_disk,vm_os_disk+"-snapshot")
+            az_backup_cmd = az_snapshot_create
             if self.vm_availability_set is not None:
                 az_cmd_generated = "az vm create --name %s --resource-group %s --location %s --nics %s --size %s --os-type %s --attach-os-disk %s --availability-set %s" % (
                     self.vm_name, self.vm_resourcegroup, self.vm_location, self.vm_nics, self.vm_size,
@@ -190,6 +202,11 @@ class GetParmeters(object):
             print("\033[33mthis is umanaged disk\033[0m")
             __disktype = "umanaged"
             vm_vhd = az_show_vm_json[_storageProfile][_osDisk][_vhd][_uri]
+            storageaccount = vm_vhd.split(".blob")[0].split("https://")[1]
+            vhd_name = vm_vhd.split("/")[-1]
+            az_storage_container_create = "az storage container create -n %s --account-name %s" % (datename, storageaccount)
+            az_storage_blob_copy = "az storage blob copy start -u %s -b %s -c %s --account-name %s" %(vm_vhd, vhd_name+".bak",datename,storageaccount)
+            az_backup_cmd = az_storage_container_create + "\n" + az_storage_blob_copy
             if self.vm_availability_set is not None:
                 az_cmd_generated = "az vm create --name %s --resource-group %s --location %s --nics %s --size %s --os-type %s --use-unmanaged-disk --attach-os-disk %s --availability-set %s" % (
                     self.vm_name, self.vm_resourcegroup, self.vm_location, self.vm_nics, self.vm_size,
@@ -198,7 +215,7 @@ class GetParmeters(object):
                 az_cmd_generated = "az vm create --name %s --resource-group %s --location %s --nics %s --size %s --os-type %s --use-unmanaged-disk --attach-os-disk %s" % (
                     self.vm_name, self.vm_resourcegroup, self.vm_location, self.vm_nics, self.vm_size,
                     self.vm_os_type, vm_vhd)
-        return az_cmd_generated
+        return az_cmd_generated,az_backup_cmd
 
 if __name__ == '__main__':
     # initiate  object
@@ -224,9 +241,9 @@ if __name__ == '__main__':
         # deserialization az vm list-ip-addresses -g rgname -n vmname
         az_list_ip_addresses_list_json = json.loads(az_list_ip_addresses_list.decode())
         vm_paramters = GetParmeters(az_show_vm_json,Tool)
-        az_cmd_generated = vm_paramters.GetParmeters()
+        az_cmd_generated,az_backup_cmd = vm_paramters.GetParmeters()
         allocate_static_public_ip = Tool.GetPublicIp(az_list_ip_addresses_list_json,vm_paramters.vm_resourcegroup)
-        Tool.Print(select_obj.DeleteVM(),allocate_static_public_ip,az_cmd_generated)
+        Tool.Print(select_obj.DeleteVM(),allocate_static_public_ip,az_backup_cmd, az_cmd_generated)
     except Exception as e:
         print("Unexpected error!",e)
 
