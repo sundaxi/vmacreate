@@ -180,21 +180,21 @@ class Tools(object):
     def Print(self,*args):
         output_final = """
 Thanks for your patience 
-\033[33m1. Firstly, backup your vhd. You could ether moidfy the OS disk directly or modify the backup vhd
+\033[33m1.Firstly, backup your vhd. You could ether moidfy the OS disk directly or modify the backup vhd
 \033[36m%s
-\033[33m2. You could delete current virtual machine with below command 
+\033[33m2.(Optional)Allocate the public IP as static if you want to keep the IP address 
 \033[36m%s
-\033[33m3. (Optional)Allocate the public IP as static if you want to keep the IP address 
+\033[33m3.You could delete current virtual machine with below command 
 \033[36m%s
-\033[33m4. Create temporary troubleshooting virtual machine 
+\033[33m4.Create temporary troubleshooting virtual machine (for Premium vm, please use vm size Standard_DS1_v2)
 \033[36m%s
-\033[33m5. Attach the issued OS disk to the troubleshooting vm
+\033[33m5.Attach the issued OS disk to the troubleshooting vm
 \033[36m%s
-\033[33m6. After troubleshooting, detach the issued os disk from troubleshooting vm 
+\033[33m6.After troubleshooting, detach the issued os disk from troubleshooting vm 
 \033[36m%s
-\033[33m7. Recreate the virtual machine based on original os disk and attach all data disk 
+\033[33m7.Recreate the virtual machine based on original os disk and attach all data disk 
 \033[36m%s\n%s 
-\033[33m8. (Optional)Enable the Boot Diagnostics
+\033[33m8.(Optional)Enable the Boot Diagnostics
 \033[36m%s
 \033[0m    
 """ % (args)
@@ -205,17 +205,17 @@ Thanks for your patience
         output_final = """
 Thanks for your patience 
 This is an Encryption virtual machine. Please follow below procedure to troubleshoot the issued virutal machine 
-\033[33m1. Firstly, backup your vhd. You could ether moidfy the OS disk directly or modify the backup vhd
+\033[33m1.Firstly, backup your vhd. You could ether moidfy the OS disk directly or modify the backup vhd
 \033[36m%s
-\033[33m2. You could delete current virtual machine with below command 
+\033[33m2.(Optional)Allocate the public IP as static if you want to keep the IP address 
 \033[36m%s
-\033[33m3. (Optional)Allocate the public IP as static if you want to keep the IP address 
+\033[33m3.You could delete current virtual machine with below command 
 \033[36m%s
-\033[33m4. Create temporary troubleshooting virtual machine 
+\033[33m4.Create temporary troubleshooting virtual machine (for Premium disk, please use vm size Standard_DS1_v2)
 \033[36m%s
-\033[33m5. Enable encryption settigns on troubleshooting vm and disable encryption settings on the issued os Disk(managed disk)
+\033[33m5.Enable encryption settigns on troubleshooting vm and disable encryption settings on the issued os Disk(managed disk)
 \033[36m%s
-\033[33m6. Attach the issued OS disk to the troubleshooting vm
+\033[33m6.Attach the issued OS disk to the troubleshooting vm
 \033[36m%s
 //Linux commnad reference, suppose /dev/sdc1 is the bek key and /dev/sdd is the issued os disk 
 mkdir /{investigatekey,investigateboot,investigateroot}
@@ -223,15 +223,15 @@ mount /dev/sdc1 /investigatekey
 mount -o nouuid /dev/sdd1 /investigateboot 
 cryptsetup luksOpen --key-file /investigatekey/LinuxPassPhraseFileName --header /investigateboot/luks/osluksheader /dev/sdd2 investigateosencrypt
 mount -o nouuid /dev/mapper/investigateosencrypt /investigateroot
-\033[33m7. After troubleshooting, detach the issued os disk from troubleshooting vm 
+\033[33m7.After troubleshooting, detach the issued os disk from troubleshooting vm 
 \033[36m%s
-\033[33m8. Recreate the virtual machine based on original os disk and attach all data disk 
+\033[33m8.Recreate the virtual machine based on original os disk and attach all data disk 
 \033[36m%s\n%s 
-\033[33m9. Update the encrytion settings on the new created virtual machine 
+\033[33m9.Update the encrytion settings on the new created virtual machine 
 \033[36m%s 
-\033[33m10. Enable the encrytpion extension again 
+\033[33m10.Enable the encrytpion extension again 
 \033[36m%s 
-\033[33m11. (Optional)Enable the Boot Diagnostics
+\033[33m11.(Optional)Enable the Boot Diagnostics
 \033[36m%s
 \033[0m
 """ % (args)
@@ -415,9 +415,9 @@ if __name__ == '__main__':
         enable_boot_diagnostics = "az vm boot-diagnostics enable --name %s --resource-group %s --storage %s" % (vm_paramters.vm_name,vm_paramters.vm_resourcegroup,vm_paramters.vm_storageURI)
 
         if vm_paramters.encryption == "True":
-            Tool.PrintEncrption(az_backup_cmd,select_obj.DeleteVM(),allocate_static_public_ip,az_vm_create_temp_cmd,vm_paramters.enable_encryption_settings_temp,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_cmd_generated,az_vm_attach_data_disk_cmd,vm_paramters.enable_encryption_settings_vm_cmd,vm_paramters.az_ad_sp_reset_credential_cmd + "\n" + vm_paramters.az_vm_encryption_enable_cmd,enable_boot_diagnostics)
+            Tool.PrintEncrption(az_backup_cmd,allocate_static_public_ip,select_obj.DeleteVM(),az_vm_create_temp_cmd,vm_paramters.enable_encryption_settings_temp,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_cmd_generated,az_vm_attach_data_disk_cmd,vm_paramters.enable_encryption_settings_vm_cmd,vm_paramters.az_ad_sp_reset_credential_cmd + "\n" + vm_paramters.az_vm_encryption_enable_cmd,enable_boot_diagnostics)
         else:
-            Tool.Print(az_backup_cmd,select_obj.DeleteVM(),allocate_static_public_ip,az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_cmd_generated,az_vm_attach_data_disk_cmd,enable_boot_diagnostics)
+            Tool.Print(az_backup_cmd,allocate_static_public_ip,select_obj.DeleteVM(),az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_cmd_generated,az_vm_attach_data_disk_cmd,enable_boot_diagnostics)
     except Exception as e:
         print("Unexpected error!",e)
 
