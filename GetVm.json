@@ -1,0 +1,70 @@
+{
+  "availabilitySet": null,
+  "diagnosticsProfile": {
+    "bootDiagnostics": {
+      "enabled": true,
+      "storageUri": "https://developenv.blob.core.windows.net"
+    }
+  },
+  "hardwareProfile": {
+    "vmSize": "Standard_DS1"
+  },
+  "id": "/subscriptions/0f96dbcb-37cf-4c89-94ac-f9672a0ec207/resourceGroups/development/providers/Microsoft.Compute/virtualMachines/pyclient",
+  "identity": null,
+  "instanceView": null,
+  "licenseType": null,
+  "location": "southeastasia",
+  "name": "pyclient",
+  "networkProfile": {
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/0f96dbcb-37cf-4c89-94ac-f9672a0ec207/resourceGroups/development/providers/Microsoft.Network/networkInterfaces/pyclient348",
+        "primary": true,
+        "resourceGroup": "development"
+      }
+    ]
+  },
+  "osProfile": null,
+  "plan": null,
+  "provisioningState": "Succeeded",
+  "resourceGroup": "development",
+  "resources": null,
+  "storageProfile": {
+    "dataDisks": [
+      {
+        "caching": "None",
+        "createOption": "Attach",
+        "diskSizeGb": 1023,
+        "image": null,
+        "lun": 0,
+        "managedDisk": {
+          "id": "/subscriptions/0f96dbcb-37cf-4c89-94ac-f9672a0ec207/resourceGroups/development/providers/Microsoft.Compute/disks/testvol",
+          "resourceGroup": "development",
+          "storageAccountType": "Standard_LRS"
+        },
+        "name": "testvol",
+        "vhd": null
+      }
+    ],
+    "imageReference": null,
+    "osDisk": {
+      "caching": "ReadWrite",
+      "createOption": "Attach",
+      "diskSizeGb": 30,
+      "encryptionSettings": null,
+      "image": null,
+      "managedDisk": {
+        "id": "/subscriptions/0f96dbcb-37cf-4c89-94ac-f9672a0ec207/resourceGroups/development/providers/Microsoft.Compute/disks/d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000",
+        "resourceGroup": "development",
+        "storageAccountType": "Standard_LRS"
+      },
+      "name": "d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000",
+      "osType": "Linux",
+      "vhd": null
+    }
+  },
+  "tags": {},
+  "type": "Microsoft.Compute/virtualMachines",
+  "vmId": "e3f7caad-5213-4e39-b806-54e677f2680f",
+  "zones": null
+}

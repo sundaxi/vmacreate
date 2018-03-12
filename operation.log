@@ -1,0 +1,23 @@
+
+Thanks for your patience 
+[33m1.Firstly, backup your vhd. You could ether moidfy the OS disk directly or modify the backup vhd
+[36maz snapshot create -g development --source d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000 --name d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000-snapshot
+//Create new disk
+az disk create --resource-group development --source d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000-snapshot --name d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000-copy --sku Standard_LRS
+[33m2.(Optional)Allocate the public IP as static if you want to keep the IP address 
+[36maz network public-ip update --resource-group development --name pyclient-ip --allocation-method Static
+[33m3.You could delete current virtual machine with below command 
+[36maz vm delete -n pyclient -g development 
+[33m4.Create temporary troubleshooting virtual machine (for Premium vm, please use vm size Standard_DS1_v2)
+[36maz vm create -g development --image <publisher:offer:sku:version>ex\RedHat:RHEL:7.3:latest --admin-username azureuser --admin-password Azuretroubleshooting123! --name temp20180312 --size Standard_A1
+[33m5.Attach the issued OS disk to the troubleshooting vm
+[36maz vm disk attach --disk d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000 --resource-group development --vm-name temp20180312
+[33m6.After troubleshooting, detach the issued os disk from troubleshooting vm 
+[36maz vm disk detach -g development --vm-name temp20180312 -n d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000
+[33m7.Recreate the virtual machine based on original os disk and attach all data disk 
+[36maz vm create --name pyclient --resource-group development --location southeastasia --nics pyclient348  --size Standard_DS1 --os-type Linux --attach-os-disk d-dbf17031ca524e749b3d5d77802b9a76-osdisk-000
+az vm disk attach --disk testvol --resource-group development --vm-name pyclient --caching None
+ 
+[33m8.(Optional)Enable the Boot Diagnostics
+[36maz vm boot-diagnostics enable --name pyclient --resource-group development --storage https://developenv.blob.core.windows.net
+[0m    
