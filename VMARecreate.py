@@ -198,13 +198,13 @@ Thanks for your patience
 \033[36m%s
 \033[0m    
 """ % (args)
-        with open('operation.log','w+',encoding='utf8') as f:
+        with open('operation_' + vm_paramters.vm_name + '.log','w+',encoding='utf8') as f:
             f.write(output_final)
         print(output_final)
     def PrintEncrption(self,*args):
         output_final = """
 Thanks for your patience 
-This is an Encryption virtual machine. Please follow below procedure to troubleshoot the issued virutal machine 
+This is an Encrypted virtual machine. Please follow below procedure to troubleshoot the issued virutal machine 
 \033[33m1.Firstly, backup your vhd. You could ether moidfy the OS disk directly or modify the backup vhd
 \033[36m%s
 \033[33m2.(Optional)Allocate the public IP as static if you want to keep the IP address 
@@ -236,7 +236,7 @@ mount -o nouuid /dev/mapper/investigateosencrypt /investigateroot
 \033[0m
 """ % (args)
         print(output_final)
-        with open('operation.log','w+',encoding='utf8') as f:
+        with open('operation_' + vm_paramters.vm_name + '.log' ,'w+',encoding='utf8') as f:
             f.write(output_final)
 
 
@@ -397,8 +397,7 @@ if __name__ == '__main__':
         # cmd_az_show_vm, cmd_az_list_ip_addresses = SelectVm().SelectTable(cmd_output)
         print("\033[32mRunning... It will take few secs...\033[0m")
         az_show_vm = az_obj.AzVmShow(cmd_az_show_vm)
-        with open('GetVm.json','w+',encoding='utf8') as f:
-            f.write(str(az_show_vm,encoding='utf-8'))
+
 
         if len(az_show_vm) == 0:
             print("\033[31mError...No such vm in this subscription!\033[0m")
@@ -413,6 +412,8 @@ if __name__ == '__main__':
         az_cmd_generated, az_backup_cmd, az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd, az_vm_attach_data_disk_cmd = vm_paramters.GetParmeters()
         allocate_static_public_ip = Tool.GetPublicIp(az_list_ip_addresses_list_json,vm_paramters.vm_resourcegroup)
         enable_boot_diagnostics = "az vm boot-diagnostics enable --name %s --resource-group %s --storage %s" % (vm_paramters.vm_name,vm_paramters.vm_resourcegroup,vm_paramters.vm_storageURI)
+        with open('GetVm' + vm_paramters.vm_name + '.json','w+',encoding='utf8') as f:
+            f.write(str(az_show_vm,encoding='utf-8'))
 
         if vm_paramters.encryption == "True":
             Tool.PrintEncrption(az_backup_cmd,allocate_static_public_ip,select_obj.DeleteVM(),az_vm_create_temp_cmd,vm_paramters.enable_encryption_settings_temp,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_cmd_generated,az_vm_attach_data_disk_cmd,vm_paramters.enable_encryption_settings_vm_cmd,vm_paramters.az_ad_sp_reset_credential_cmd + "\n" + vm_paramters.az_vm_encryption_enable_cmd,enable_boot_diagnostics)
