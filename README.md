@@ -30,7 +30,7 @@ Select your subscription and login to Azure cloud shell![cloud_shell_login.png](
 If you didn't select the correct subscription, please set your subscription 
 
 ```shell
-az vm account set -s <subscription_id> 
+az account set -s <subscription_id> 
 ```
 
 Clone the code from github
