@@ -226,7 +226,9 @@ cryptsetup luksOpen --key-file /investigatekey/LinuxPassPhraseFileName --header 
 mount -o nouuid /dev/mapper/investigateosencrypt /investigateroot
 \033[33m6.After troubleshooting, detach the issued os disk from troubleshooting vm 
 \033[36m%s
-\033[33m7.Use swap API to swap the os disk back 
+\033[33m7.Update the encryption settings back to the copied vhd 
+\033[36m%s
+\033[33m8.Use swap API to swap the os disk back 
 \033[36m%s 
 \033[0m
 """ % (args)
@@ -255,8 +257,8 @@ class GetParmeters(object):
             self.vm_diskEncryptionKey = az_show_vm_json[_storageProfile][_osDisk][_encryptionSettings][_diskEncryptionKey]
             self.vm_keyEncryptionKey = az_show_vm_json[_storageProfile][_osDisk][_encryptionSettings][_keyEncryptionKey]
             vm_os_disk = az_show_vm_json[_storageProfile][_osDisk][_name]
-            self.disable_disk_encryption_setings = "az disk update -n %s -g %s --set encryptionSettings.enabled=false encryptionSettings.diskEncryptionKey=null encryptionSettings.keyEncryptionKey=null" % (vm_os_disk, self.vm_resourcegroup)
-
+            self.disable_disk_encryption_setings = "az disk update -n %s -g %s --set encryptionSettings.enabled=false encryptionSettings.diskEncryptionKey=null encryptionSettings.keyEncryptionKey=null" % (vm_os_disk + "-copy", self.vm_resourcegroup)
+            self.enable_disk_encryption_settings = "az disk update -n %s -g %s --set encryptionSettings.enabled=true encryptionSettings.diskEncryptionKey=%s encryptionSettings.keyEncryptionKey=%s" % (vm_os_disk + '-copy', self.vm_resourcegroup,self.vm_diskEncryptionKey,self.vm_keyEncryptionKey)
             self.enable_encryption_settings_temp = 'az vm update -n %s -g %s --set storageProfile.osDisk.encryptionSettings.diskEncryptionKey="%s" storageProfile.osDisk.encryptionSettings.keyEncryptionKey="%s" storageProfile.osDisk.encryptionSettings.Enabled=true ' % (self.vm_temp_name,self.vm_resourcegroup,
             self.vm_diskEncryptionKey, self.vm_keyEncryptionKey)
 
@@ -426,7 +428,7 @@ if __name__ == '__main__':
             f.write(str(az_show_vm,encoding='utf-8'))
 
         if vm_paramters.encryption == "True":
-            Tool.PrintEncrption(az_backup_cmd,az_vm_deallocate_cmd,az_vm_create_temp_cmd,vm_paramters.enable_encryption_settings_temp,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_swap_disk_cmd)
+            Tool.PrintEncrption(az_backup_cmd,az_vm_deallocate_cmd,az_vm_create_temp_cmd,vm_paramters.enable_encryption_settings_temp,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd, vm_paramters.enable_disk_encryption_settings,az_swap_disk_cmd)
         else:
             Tool.Print(az_backup_cmd,az_vm_deallocate_cmd,az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_swap_disk_cmd)
     # except Exception as e:
