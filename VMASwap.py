@@ -344,7 +344,6 @@ class GetParmeters(object):
             az_storage_container_create = "az storage container create -n %s --account-name %s" % (datename, storageaccount)
             az_storage_blob_copy = "az storage blob copy start -u %s -b %s -c %s --account-name %s" %(vm_vhd, vhd_backup_name,datename,storageaccount)
             az_bak_disk_uri = storageaccount_uri + "/" + datename + "/" + vhd_backup_name
-            print("az_bak_disk_uri",az_bak_disk_uri)
             az_backup_cmd = az_storage_container_create + "\n" + az_storage_blob_copy
             # az vm create -g encryption --image "RedHat:RHEL:7.3:latest"  --admin-username azuretroubleshoot --admin-password Azuretroulbeshoot123! --name troubleshootvm20180303 --use-unmanaged-disk --storage-account encrption --storage-sku Standard_LRS
 
