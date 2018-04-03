@@ -258,7 +258,7 @@ class GetParmeters(object):
             self.vm_keyEncryptionKey = az_show_vm_json[_storageProfile][_osDisk][_encryptionSettings][_keyEncryptionKey]
             vm_os_disk = az_show_vm_json[_storageProfile][_osDisk][_name]
             self.disable_disk_encryption_setings = "az disk update -n %s -g %s --set encryptionSettings.enabled=false encryptionSettings.diskEncryptionKey=null encryptionSettings.keyEncryptionKey=null" % (vm_os_disk + "-copy", self.vm_resourcegroup)
-            self.enable_disk_encryption_settings = "az disk update -n %s -g %s --set encryptionSettings.enabled=true encryptionSettings.diskEncryptionKey=%s encryptionSettings.keyEncryptionKey=%s" % (vm_os_disk + '-copy', self.vm_resourcegroup,self.vm_diskEncryptionKey,self.vm_keyEncryptionKey)
+            self.enable_disk_encryption_settings = 'az disk update -n %s -g %s --set encryptionSettings.enabled=true encryptionSettings.diskEncryptionKey="%s" encryptionSettings.keyEncryptionKey="%s"' % (vm_os_disk + '-copy', self.vm_resourcegroup,self.vm_diskEncryptionKey,self.vm_keyEncryptionKey)
             self.enable_encryption_settings_temp = 'az vm update -n %s -g %s --set storageProfile.osDisk.encryptionSettings.diskEncryptionKey="%s" storageProfile.osDisk.encryptionSettings.keyEncryptionKey="%s" storageProfile.osDisk.encryptionSettings.Enabled=true ' % (self.vm_temp_name,self.vm_resourcegroup,
             self.vm_diskEncryptionKey, self.vm_keyEncryptionKey)
 
