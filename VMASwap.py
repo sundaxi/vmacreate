@@ -189,13 +189,15 @@ class Tools(object):
 Thanks for your patience 
 \033[33m1.Firstly, backup your vhd. The backup vhd will be used for further troubleshooting 
 \033[36m%s
-\033[33m2.Create temporary troubleshooting virtual machine (for Premium vm, please use vm size Standard_DS1_v2)
+\033[33m2.Deallocate the virtual machine  
 \033[36m%s
-\033[33m3.Attach the issued OS disk to the troubleshooting vm
+\033[33m3.Create temporary troubleshooting virtual machine (for Premium vm, please use vm size Standard_DS1_v2)
 \033[36m%s
-\033[33m4.After troubleshooting, detach the issued os disk from troubleshooting vm 
+\033[33m4.Attach the issued OS disk to the troubleshooting vm
 \033[36m%s
-\033[33m5.Swap the modified os disk to the existing vm.
+\033[33m5.After troubleshooting, detach the issued os disk from troubleshooting vm 
+\033[36m%s
+\033[33m6.Swap the modified os disk to the existing vm.
 \033[36m%s
 \033[0m    
 """ % (args)
@@ -208,11 +210,13 @@ Thanks for your patience
 This is an Encrypted virtual machine. Please follow below procedure to troubleshoot the issued virutal machine 
 \033[33m1.Firstly, backup your vhd. You could ether moidfy the OS disk directly or modify the backup vhd
 \033[36m%s
-\033[33m2.Create temporary troubleshooting virtual machine (for Premium disk, please use vm size Standard_DS1_v2)
+\033[33m2.Deallocate the virtual machine 
 \033[36m%s
-\033[33m3.Enable encryption settigns on troubleshooting vm and disable encryption settings on the issued os Disk(managed disk only)
+\033[33m3.Create temporary troubleshooting virtual machine (for Premium disk, please use vm size Standard_DS1_v2)
 \033[36m%s
-\033[33m4.Attach the copied issued OS disk to the troubleshooting vm
+\033[33m4.Enable encryption settigns on troubleshooting vm and disable encryption settings on the issued os Disk(managed disk only)
+\033[36m%s
+\033[33m5.Attach the copied issued OS disk to the troubleshooting vm
 \033[36m%s
 //Linux commnad reference, suppose /dev/sdc1 is the bek key and /dev/sdd is the issued os disk 
 mkdir /{investigatekey,investigateboot,investigateroot}
@@ -220,9 +224,9 @@ mount /dev/sdc1 /investigatekey
 mount -o nouuid /dev/sdd1 /investigateboot 
 cryptsetup luksOpen --key-file /investigatekey/LinuxPassPhraseFileName --header /investigateboot/luks/osluksheader /dev/sdd2 investigateosencrypt
 mount -o nouuid /dev/mapper/investigateosencrypt /investigateroot
-\033[33m5.After troubleshooting, detach the issued os disk from troubleshooting vm 
+\033[33m6.After troubleshooting, detach the issued os disk from troubleshooting vm 
 \033[36m%s
-\033[33m6.Use swap API to swap the os disk back 
+\033[33m7.Use swap API to swap the os disk back 
 \033[36m%s 
 \033[0m
 """ % (args)
@@ -287,6 +291,7 @@ class GetParmeters(object):
 
     def GetParmeters(self):
         az_vm_attach_data_disk_cmd = ""
+        az_vm_deallocate_cmd = 'az vm stop -g %s -n %s' % (self.vm_resourcegroup, self.vm_name)
         if az_show_vm_json[_storageProfile][_osDisk].get(_managedDisk) is not None:
             print("\033[33mthis is managed disk\033[0m")
             __disktype = "managed"
@@ -303,6 +308,7 @@ class GetParmeters(object):
             az_temp_vm_attach_disk_cmd = "az vm disk attach --disk %s --resource-group %s --vm-name %s" % (vm_os_disk + "-copy",self.vm_resourcegroup,self.vm_temp_name)
             az_temp_vm_detach_disk_cmd = "az vm disk detach -g %s --vm-name %s -n %s" % (self.vm_resourcegroup,self.vm_temp_name,vm_os_disk + '-copy')
             az_swap_disk_cmd = 'az feature register --namespace "microsoft.compute" -n "AllowManagedDisksReplaceOSDisk"\n' + "az provider register -n microsoft.compute\n" + "az vm update --name %s --resource-group %s --os-disk %s" %(self.vm_name,self.vm_resourcegroup,swap_managedDisk_id)
+
             if len(self.vm_os_datadisk_list) > 0:
                 count_lun = len(self.vm_os_datadisk_list) - 1
                 self.vm_os_datadisk_list.reverse()
@@ -344,6 +350,7 @@ class GetParmeters(object):
             az_storage_container_create = "az storage container create -n %s --account-name %s" % (datename, storageaccount)
             az_storage_blob_copy = "az storage blob copy start -u %s -b %s -c %s --account-name %s" %(vm_vhd, vhd_backup_name,datename,storageaccount)
             az_bak_disk_uri = storageaccount_uri + "/" + datename + "/" + vhd_backup_name
+            print("az_bak_disk_uri",az_bak_disk_uri)
             az_backup_cmd = az_storage_container_create + "\n" + az_storage_blob_copy
             # az vm create -g encryption --image "RedHat:RHEL:7.3:latest"  --admin-username azuretroubleshoot --admin-password Azuretroulbeshoot123! --name troubleshootvm20180303 --use-unmanaged-disk --storage-account encrption --storage-sku Standard_LRS
 
@@ -383,7 +390,7 @@ class GetParmeters(object):
         # az_cmd_generated = "//Recreate vm based on original vhd\n" + az_cmd_generated1 + "\n//Recreate vm base on new created vhd\n" + az_cmd_generated2
         # //Recreate vm based on original vhd\n
         az_cmd_generated = az_cmd_generated1
-        return az_cmd_generated, az_backup_cmd, az_vm_create_temp_cmd, az_temp_vm_attach_disk_cmd, az_temp_vm_detach_disk_cmd, az_vm_attach_data_disk_cmd,az_swap_disk_cmd
+        return az_cmd_generated, az_backup_cmd, az_vm_create_temp_cmd, az_temp_vm_attach_disk_cmd, az_temp_vm_detach_disk_cmd, az_vm_attach_data_disk_cmd,az_swap_disk_cmd,az_vm_deallocate_cmd
 
 if __name__ == '__main__':
 #     # initiate  object
@@ -412,16 +419,16 @@ if __name__ == '__main__':
         # deserialization az vm list-ip-addresses -g rgname -n vmname
         az_list_ip_addresses_list_json = json.loads(az_list_ip_addresses_list.decode())
         vm_paramters = GetParmeters(az_show_vm_json,Tool)
-        az_cmd_generated, az_backup_cmd, az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd, az_vm_attach_data_disk_cmd,az_swap_disk_cmd = vm_paramters.GetParmeters()
+        az_cmd_generated, az_backup_cmd, az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd, az_vm_attach_data_disk_cmd,az_swap_disk_cmd, az_vm_deallocate_cmd = vm_paramters.GetParmeters()
         allocate_static_public_ip = Tool.GetPublicIp(az_list_ip_addresses_list_json,vm_paramters.vm_resourcegroup)
         enable_boot_diagnostics = "az vm boot-diagnostics enable --name %s --resource-group %s --storage %s" % (vm_paramters.vm_name,vm_paramters.vm_resourcegroup,vm_paramters.vm_storageURI)
         with open('GetVm' + vm_paramters.vm_name + '.json','w+',encoding='utf8') as f:
             f.write(str(az_show_vm,encoding='utf-8'))
 
         if vm_paramters.encryption == "True":
-            Tool.PrintEncrption(az_backup_cmd,az_vm_create_temp_cmd,vm_paramters.enable_encryption_settings_temp,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_swap_disk_cmd)
+            Tool.PrintEncrption(az_backup_cmd,az_vm_deallocate_cmd,az_vm_create_temp_cmd,vm_paramters.enable_encryption_settings_temp,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_swap_disk_cmd)
         else:
-            Tool.Print(az_backup_cmd,az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_swap_disk_cmd)
+            Tool.Print(az_backup_cmd,az_vm_deallocate_cmd,az_vm_create_temp_cmd,az_temp_vm_attach_disk_cmd,az_temp_vm_detach_disk_cmd,az_swap_disk_cmd)
     # except Exception as e:
     #     print("Unexpected error!",e)
 
